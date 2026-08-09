@@ -168,6 +168,24 @@
     white-space: nowrap;
   }
 
+  .nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 1.1rem;
+  }
+
+  .nav-link {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--ink);
+    text-decoration: none;
+    white-space: nowrap;
+  }
+
+  .nav-link:hover {
+    color: var(--pen-rosso);
+  }
+
   /* ---------- hero ---------- */
 
   .hero {
@@ -233,8 +251,7 @@
 
   .btn-primary:focus-visible,
   .nav-cta:focus-visible,
-  input:focus-visible,
-  .btn-primary-form:focus-visible {
+  .nav-link:focus-visible {
     outline: 2.5px solid var(--focus);
     outline-offset: 2px;
   }
@@ -504,7 +521,7 @@
   .kid-pill .chip { padding: 0.18rem 0.4rem; font-size: 0; }
   .kid-pill .swatch { width: 11px; height: 11px; }
 
-  /* waitlist */
+  /* signup */
 
   .waitlist {
     background: var(--card);
@@ -528,54 +545,6 @@
   }
 
   .waitlist p { color: var(--ink-soft); margin: 0; font-size: 0.95rem; }
-
-  form.signup {
-    display: flex;
-    flex-direction: column;
-    gap: 0.7rem;
-  }
-
-  .field-row {
-    display: flex;
-    gap: 0.6rem;
-    flex-wrap: wrap;
-  }
-
-  input[type="email"] {
-    flex: 1 1 12rem;
-    min-width: 0;
-    padding: 0.8rem 1rem;
-    border-radius: 12px;
-    border: 1.5px solid var(--card-border);
-    background: var(--paper);
-    color: var(--ink);
-    font-size: 0.95rem;
-    font-family: inherit;
-  }
-
-  .btn-primary-form {
-    background: var(--accent);
-    color: var(--accent-ink);
-    border: none;
-    font-weight: 700;
-    font-size: 0.92rem;
-    padding: 0.8rem 1.35rem;
-    border-radius: 12px;
-    cursor: pointer;
-    white-space: nowrap;
-  }
-
-  .form-note {
-    font-size: 0.78rem;
-    color: var(--ink-faint);
-  }
-
-  #form-status {
-    font-size: 0.85rem;
-    min-height: 1.2em;
-    color: var(--accent);
-    font-weight: 600;
-  }
 
   /* footer */
 
@@ -611,7 +580,10 @@
       </span>
       CheColore
     </a>
-    <a class="nav-cta" href="#waitlist">Iscriviti</a>
+    <div class="nav-actions">
+      <a class="nav-link" href="/login">Accedi</a>
+      <a class="nav-cta" href="/register">Registrati</a>
+    </div>
   </div>
 </header>
 
@@ -623,8 +595,8 @@
         <h1 class="headline display">L'orario che si vede,<br>non si legge.</h1>
         <p class="sub">CheColore trasforma l'orario scolastico in un codice colore abbinato alle copertine di quaderni e libri. Ogni mattina sai subito cosa mettere nello zaino — colore per colore, figlio per figlio.</p>
         <div class="cta-row">
-          <a class="btn-primary" href="#waitlist">Iscriviti alla lista d'attesa</a>
-          <span class="cta-note">2 minuti, nessuna carta richiesta</span>
+          <a class="btn-primary" href="/register">Registrati</a>
+          <a class="nav-link" href="/login">Hai già un account? Accedi</a>
         </div>
       </div>
 
@@ -730,43 +702,25 @@
       </div>
     </section>
 
-    <section id="waitlist">
+    <section id="signup">
       <div class="waitlist">
         <div>
-          <p class="label" style="color:var(--accent)">Lista d'attesa</p>
-          <h2 class="display">Stiamo costruendo la prima versione.</h2>
-          <p>Lascia la tua email: ti scriviamo appena CheColore è pronta da provare. Nessuno spam, promesso — giusto qualche aggiornamento mentre la costruiamo.</p>
+          <p class="label" style="color:var(--accent)">Inizia ora</p>
+          <h2 class="display">Pronta da provare, gratis.</h2>
+          <p>Crea un account, aggiungi i tuoi figli e imposta i colori delle loro materie — bastano pochi minuti per la prima settimana.</p>
         </div>
-        <form class="signup" id="signup-form">
-          <div class="field-row">
-            <label for="email" style="position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0);">Email</label>
-            <input type="email" id="email" name="email" placeholder="la-tua-email@esempio.it" required>
-            <button type="submit" class="btn-primary-form">Iscrivimi</button>
-          </div>
-          <p class="form-note">Iscrivendoti si aprirà il tuo programma di posta per confermare l'invio — questa è ancora una pagina di validazione, non un prodotto attivo.</p>
-          <p id="form-status" role="status"></p>
-        </form>
+        <div class="cta-row">
+          <a class="btn-primary" href="/register">Registrati</a>
+          <a class="nav-link" href="/login">Hai già un account? Accedi</a>
+        </div>
       </div>
     </section>
   </div>
 </main>
 
 <footer class="wrap">
-  <span>CheColore — un'idea in costruzione, non ancora un prodotto.</span>
+  <span>CheColore</span>
   <span>Colori pensati per lo zaino, non per lo schermo.</span>
 </footer>
-
-<script>
-  document.getElementById('signup-form').addEventListener('submit', function (e) {
-    e.preventDefault();
-    var email = document.getElementById('email').value.trim();
-    var status = document.getElementById('form-status');
-    if (!email) return;
-    var subject = encodeURIComponent('Interesse per CheColore');
-    var body = encodeURIComponent('Vorrei essere avvisato quando CheColore è pronta.\n\nEmail: ' + email);
-    window.location.href = 'mailto:macroncode@gmail.com?subject=' + subject + '&body=' + body;
-    status.textContent = 'Apertura del programma di posta in corso — conferma l\'invio da lì.';
-  });
-</script>
 </body>
 </html>
