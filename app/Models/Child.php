@@ -14,8 +14,16 @@ class Child extends Model
     protected $fillable = [
         'user_id',
         'name',
+        'include_saturday',
         'sort_order',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'include_saturday' => 'boolean',
+        ];
+    }
 
     public function user(): BelongsTo
     {

@@ -14,17 +14,40 @@ const subjectDialog = ref(false);
 const editingSubject = ref(null);
 const subjectName = ref('');
 const subjectColor = ref('#c1503f');
+const customColor = ref(false);
 const savingSubject = ref(false);
 const subjectError = ref('');
 
-const days = [
-    { value: 1, label: 'Lun' },
-    { value: 2, label: 'Mar' },
-    { value: 3, label: 'Mer' },
-    { value: 4, label: 'Gio' },
-    { value: 5, label: 'Ven' },
+// A curated set of real notebook/book-cover colors — tapping a swatch is
+// far more reliable on a touchscreen than dragging an RGB picker, and it's
+// truer to the product anyway: covers come in a limited set of colors.
+const PALETTE = [
+    '#e63946', '#c1503f', '#d98a34', '#f2b705',
+    '#8ac926', '#3e7f5b', '#1b998b', '#2e5e8c',
+    '#457b9d', '#6a4c93', '#b5838d', '#ff6f91',
+    '#6f4e37', '#4a4e69', '#202a3b', '#fbfaf6',
 ];
-const periods = [1, 2, 3, 4, 5, 6];
+
+const days = computed(() => {
+    const base = [
+        { value: 1, label: 'Lun' },
+        { value: 2, label: 'Mar' },
+        { value: 3, label: 'Mer' },
+        { value: 4, label: 'Gio' },
+        { value: 5, label: 'Ven' },
+    ];
+    if (child.value?.include_saturday) {
+        base.push({ value: 6, label: 'Sab' });
+    }
+    return base;
+});
+
+const periodsCount = ref(6);
+const periods = computed(() => Array.from({ length: periodsCount.value }, (_, i) => i + 1));
+
+function addPeriod() {
+    if (periodsCount.value < 12) periodsCount.value++;
+}
 
 const entryMap = computed(() => {
     const map = {};
@@ -33,6 +56,19 @@ const entryMap = computed(() => {
     }
     return map;
 });
+
+// Vuetify auto-contrasts text on its own color-aware components, but these
+// grid cells are plain chips driven by an arbitrary hex, so contrast is
+// computed by hand — otherwise a pale color (e.g. the white/cream swatch)
+// would print unreadable white-on-white text.
+function textOn(hex) {
+    if (!hex) return undefined;
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    const yiq = (r * 299 + g * 587 + b * 114) / 1000;
+    return yiq >= 160 ? '#202a3b' : '#ffffff';
+}
 
 async function load() {
     loading.value = true;
@@ -44,13 +80,23 @@ async function load() {
     child.value = childRes.data;
     subjects.value = subjectsRes.data;
     entries.value = entriesRes.data;
+    periodsCount.value = Math.max(6, ...entries.value.map((e) => e.period), 6);
     loading.value = false;
+}
+
+async function toggleSaturday(value) {
+    await window.axios.put(`/api/children/${childId.value}`, {
+        name: child.value.name,
+        include_saturday: value,
+    });
+    child.value.include_saturday = value;
 }
 
 function openAddSubject() {
     editingSubject.value = null;
     subjectName.value = '';
-    subjectColor.value = '#c1503f';
+    subjectColor.value = PALETTE[0];
+    customColor.value = false;
     subjectError.value = '';
     subjectDialog.value = true;
 }
@@ -59,6 +105,7 @@ function openEditSubject(subject) {
     editingSubject.value = subject;
     subjectName.value = subject.name;
     subjectColor.value = subject.color;
+    customColor.value = !PALETTE.includes(subject.color);
     subjectError.value = '';
     subjectDialog.value = true;
 }
@@ -143,44 +190,81 @@ onMounted(load);
             </v-card>
 
             <v-card variant="outlined">
-                <v-card-title>Orario settimanale</v-card-title>
+                <v-card-title class="d-flex align-center justify-space-between flex-wrap ga-2">
+                    Orario settimanale
+                    <v-switch
+                        :model-value="child.include_saturday"
+                        label="Includi il sabato"
+                        color="primary"
+                        density="compact"
+                        hide-details
+                        class="flex-grow-0"
+                        @update:model-value="toggleSaturday"
+                    />
+                </v-card-title>
                 <v-card-text>
                     <v-alert v-if="!subjects.length" type="info" variant="tonal">
                         Aggiungi prima almeno una materia per poter compilare l'orario.
                     </v-alert>
-                    <div v-else class="table-wrap">
-                        <table class="timetable">
-                            <thead>
-                                <tr>
-                                    <th></th>
-                                    <th v-for="day in days" :key="day.value">{{ day.label }}</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr v-for="period in periods" :key="period">
-                                    <td class="period-label">{{ period }}ª ora</td>
-                                    <td v-for="day in days" :key="day.value">
-                                        <v-select
-                                            :model-value="entryMap[`${day.value}-${period}`]?.subject_id ?? null"
-                                            :items="subjects"
-                                            item-title="name"
-                                            item-value="id"
-                                            density="compact"
-                                            variant="outlined"
-                                            hide-details
-                                            clearable
-                                            placeholder="—"
-                                            @update:model-value="(val) => setCell(day.value, period, val)"
-                                        >
-                                            <template #selection="{ item }">
-                                                <v-chip size="small" :color="item.raw.color" variant="flat">{{ item.raw.name }}</v-chip>
-                                            </template>
-                                        </v-select>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
+                    <template v-else>
+                        <div class="table-wrap">
+                            <table class="timetable">
+                                <thead>
+                                    <tr>
+                                        <th></th>
+                                        <th v-for="day in days" :key="day.value">{{ day.label }}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr v-for="period in periods" :key="period">
+                                        <td class="period-label">{{ period }}ª ora</td>
+                                        <td v-for="day in days" :key="day.value">
+                                            <v-menu>
+                                                <template #activator="{ props: menuProps }">
+                                                    <v-chip
+                                                        v-bind="menuProps"
+                                                        class="cell-chip"
+                                                        :color="entryMap[`${day.value}-${period}`]?.subject.color"
+                                                        :style="{ color: textOn(entryMap[`${day.value}-${period}`]?.subject.color) }"
+                                                        variant="flat"
+                                                        label
+                                                    >
+                                                        {{ entryMap[`${day.value}-${period}`]?.subject.name ?? '—' }}
+                                                    </v-chip>
+                                                </template>
+                                                <v-list density="compact">
+                                                    <v-list-item
+                                                        v-for="subject in subjects"
+                                                        :key="subject.id"
+                                                        @click="setCell(day.value, period, subject.id)"
+                                                    >
+                                                        <template #prepend>
+                                                            <span class="swatch-dot" :style="{ background: subject.color }" />
+                                                        </template>
+                                                        <v-list-item-title>{{ subject.name }}</v-list-item-title>
+                                                    </v-list-item>
+                                                    <v-divider />
+                                                    <v-list-item @click="setCell(day.value, period, null)">
+                                                        <v-list-item-title class="text-medium-emphasis">Nessuna materia</v-list-item-title>
+                                                    </v-list-item>
+                                                </v-list>
+                                            </v-menu>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <v-btn
+                            variant="tonal"
+                            size="small"
+                            prepend-icon="mdi-plus"
+                            class="mt-3"
+                            :disabled="periodsCount >= 12"
+                            @click="addPeriod"
+                        >
+                            Aggiungi ora
+                        </v-btn>
+                    </template>
                 </v-card-text>
             </v-card>
         </template>
@@ -190,9 +274,29 @@ onMounted(load);
                 <v-card-title>{{ editingSubject ? 'Modifica materia' : 'Aggiungi materia' }}</v-card-title>
                 <v-card-text>
                     <v-alert v-if="subjectError" type="error" variant="tonal" class="mb-4">{{ subjectError }}</v-alert>
-                    <v-text-field v-model="subjectName" label="Materia" class="mb-2" autofocus />
+                    <v-text-field v-model="subjectName" label="Materia" class="mb-3" autofocus />
+
                     <p class="text-caption mb-2">Colore (stesso della copertina del quaderno)</p>
-                    <input v-model="subjectColor" type="color" class="color-input" />
+                    <div class="palette-grid mb-3">
+                        <button
+                            v-for="hex in PALETTE"
+                            :key="hex"
+                            type="button"
+                            class="palette-swatch"
+                            :class="{ selected: !customColor && subjectColor === hex }"
+                            :style="{ background: hex }"
+                            :aria-label="hex"
+                            @click="subjectColor = hex; customColor = false"
+                        />
+                    </div>
+
+                    <v-btn variant="text" size="small" class="mb-2" @click="customColor = !customColor">
+                        {{ customColor ? 'Usa uno dei colori sopra' : 'Colore personalizzato…' }}
+                    </v-btn>
+                    <div v-if="customColor" class="d-flex align-center ga-3">
+                        <input v-model="subjectColor" type="color" class="color-input" />
+                        <span class="text-body-2">{{ subjectColor }}</span>
+                    </div>
                 </v-card-text>
                 <v-card-actions>
                     <v-spacer />
@@ -219,7 +323,7 @@ onMounted(load);
     text-align: left;
 }
 .timetable td {
-    min-width: 120px;
+    min-width: 108px;
 }
 .period-label {
     font-size: 0.85rem;
@@ -227,8 +331,36 @@ onMounted(load);
     color: rgb(var(--v-theme-on-surface));
     opacity: 0.7;
 }
-.color-input {
+.cell-chip {
     width: 100%;
+    justify-content: center;
+    cursor: pointer;
+}
+.swatch-dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 4px;
+    display: inline-block;
+    margin-right: 4px;
+}
+.palette-grid {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    gap: 8px;
+}
+.palette-swatch {
+    aspect-ratio: 1;
+    border-radius: 50%;
+    border: 2px solid rgba(0, 0, 0, 0.12);
+    cursor: pointer;
+    padding: 0;
+}
+.palette-swatch.selected {
+    outline: 2.5px solid var(--v-theme-primary, #ab3324);
+    outline-offset: 2px;
+}
+.color-input {
+    width: 48px;
     height: 40px;
     border: none;
     background: none;

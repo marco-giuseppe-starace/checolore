@@ -26,6 +26,7 @@ class ChildController extends Controller
         ]);
 
         $data['sort_order'] = $request->user()->children()->count();
+        $data['include_saturday'] = false;
 
         return $request->user()->children()->create($data);
     }
@@ -36,6 +37,7 @@ class ChildController extends Controller
 
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
+            'include_saturday' => ['sometimes', 'boolean'],
         ]);
 
         $child->update($data);
