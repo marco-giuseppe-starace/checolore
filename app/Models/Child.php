@@ -15,6 +15,7 @@ class Child extends Model
         'user_id',
         'name',
         'include_saturday',
+        'periods_count',
         'sort_order',
     ];
 

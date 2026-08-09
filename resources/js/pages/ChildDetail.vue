@@ -45,8 +45,32 @@ const days = computed(() => {
 const periodsCount = ref(6);
 const periods = computed(() => Array.from({ length: periodsCount.value }, (_, i) => i + 1));
 
-function addPeriod() {
-    if (periodsCount.value < 12) periodsCount.value++;
+async function updateChild(partial) {
+    const { data } = await window.axios.put(`/api/children/${childId.value}`, {
+        name: child.value.name,
+        include_saturday: child.value.include_saturday,
+        periods_count: periodsCount.value,
+        ...partial,
+    });
+    child.value = data;
+}
+
+async function addPeriod() {
+    if (periodsCount.value >= 12) return;
+    periodsCount.value++;
+    await updateChild({ periods_count: periodsCount.value });
+}
+
+async function removePeriod() {
+    if (periodsCount.value <= 1) return;
+    const last = periodsCount.value;
+    const hasEntries = entries.value.some((e) => e.period === last);
+    if (hasEntries && !confirm(`L'ultima ora ha materie assegnate. Rimuoverla le cancellerà dall'orario. Continuare?`)) {
+        return;
+    }
+    periodsCount.value--;
+    await updateChild({ periods_count: periodsCount.value });
+    await load();
 }
 
 const entryMap = computed(() => {
@@ -80,16 +104,12 @@ async function load() {
     child.value = childRes.data;
     subjects.value = subjectsRes.data;
     entries.value = entriesRes.data;
-    periodsCount.value = Math.max(6, ...entries.value.map((e) => e.period), 6);
+    periodsCount.value = child.value.periods_count;
     loading.value = false;
 }
 
 async function toggleSaturday(value) {
-    await window.axios.put(`/api/children/${childId.value}`, {
-        name: child.value.name,
-        include_saturday: value,
-    });
-    child.value.include_saturday = value;
+    await updateChild({ include_saturday: value });
 }
 
 function openAddSubject() {
@@ -254,16 +274,26 @@ onMounted(load);
                                 </tbody>
                             </table>
                         </div>
-                        <v-btn
-                            variant="tonal"
-                            size="small"
-                            prepend-icon="mdi-plus"
-                            class="mt-3"
-                            :disabled="periodsCount >= 12"
-                            @click="addPeriod"
-                        >
-                            Aggiungi ora
-                        </v-btn>
+                        <div class="d-flex ga-2 mt-3">
+                            <v-btn
+                                variant="tonal"
+                                size="small"
+                                prepend-icon="mdi-plus"
+                                :disabled="periodsCount >= 12"
+                                @click="addPeriod"
+                            >
+                                Aggiungi ora
+                            </v-btn>
+                            <v-btn
+                                variant="tonal"
+                                size="small"
+                                prepend-icon="mdi-minus"
+                                :disabled="periodsCount <= 1"
+                                @click="removePeriod"
+                            >
+                                Rimuovi ora
+                            </v-btn>
+                        </div>
                     </template>
                 </v-card-text>
             </v-card>
