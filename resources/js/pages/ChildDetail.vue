@@ -317,7 +317,14 @@ onMounted(load);
                             :style="{ background: hex }"
                             :aria-label="hex"
                             @click="subjectColor = hex; customColor = false"
-                        />
+                        >
+                            <v-icon
+                                v-if="!customColor && subjectColor === hex"
+                                icon="mdi-check-bold"
+                                size="18"
+                                :color="textOn(hex)"
+                            />
+                        </button>
                     </div>
 
                     <v-btn variant="text" size="small" class="mb-2" @click="customColor = !customColor">
@@ -384,9 +391,12 @@ onMounted(load);
     border: 2px solid rgba(0, 0, 0, 0.12);
     cursor: pointer;
     padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 .palette-swatch.selected {
-    outline: 2.5px solid var(--v-theme-primary, #ab3324);
+    outline: 3px solid #ab3324;
     outline-offset: 2px;
 }
 .color-input {
