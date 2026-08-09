@@ -1,0 +1,14 @@
+{
+    "name": "CheColore — L'orario a colori",
+    "short_name": "CheColore",
+    "description": "Trasforma l'orario scolastico in un codice colore abbinato ai quaderni, per famiglie con più figli.",
+    "start_url": "/",
+    "scope": "/",
+    "display": "standalone",
+    "background_color": "#fffdf8",
+    "theme_color": "#ab3324",
+    "icons": [
+        { "src": "/pwa-icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+        { "src": "/pwa-icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+    ]
+}
