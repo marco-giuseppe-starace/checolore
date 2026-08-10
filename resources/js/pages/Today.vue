@@ -1,9 +1,11 @@
 <script setup>
 import { ref, onMounted } from 'vue';
+import DailyPackList from '../components/DailyPackList.vue';
 
 const loading = ref(true);
 const children = ref([]);
 const dayLabel = ref('');
+const tomorrow = ref({ dayLabel: '', children: [] });
 
 const DAY_NAMES = {
     1: 'Lunedì', 2: 'Martedì', 3: 'Mercoledì', 4: 'Giovedì',
@@ -15,24 +17,11 @@ async function load() {
     const { data } = await window.axios.get('/api/today');
     children.value = data.children;
     dayLabel.value = DAY_NAMES[data.day_of_week] ?? '';
+    tomorrow.value = {
+        dayLabel: DAY_NAMES[data.tomorrow.day_of_week] ?? '',
+        children: data.tomorrow.children,
+    };
     loading.value = false;
-}
-
-function packedCount(child) {
-    return child.subjects.filter((s) => s.confirmed).length;
-}
-
-async function toggle(child, subject) {
-    // Flip immediately — waiting for the round-trip before showing the
-    // check makes the tap feel unresponsive, which defeats the point of
-    // an instant-feedback ritual.
-    subject.confirmed = !subject.confirmed;
-    try {
-        const { data } = await window.axios.post(`/api/children/${child.id}/pack/${subject.id}`);
-        subject.confirmed = data.confirmed;
-    } catch (e) {
-        subject.confirmed = !subject.confirmed;
-    }
 }
 
 onMounted(load);
@@ -55,50 +44,41 @@ onMounted(load);
         </v-alert>
 
         <template v-else>
-            <v-card v-for="child in children" :key="child.id" variant="outlined" class="mb-4">
-                <v-card-title class="d-flex align-center justify-space-between">
-                    {{ child.name }}
-                    <span v-if="child.subjects.length" class="text-caption text-medium-emphasis">
-                        {{ packedCount(child) }} di {{ child.subjects.length }} pronti
-                    </span>
-                </v-card-title>
-                <v-card-text>
-                    <p v-if="!child.subjects.length" class="text-medium-emphasis">
-                        Nessuna materia oggi — niente da preparare, o l'orario non è ancora impostato.
-                    </p>
-                    <div v-else class="d-flex flex-wrap ga-2">
-                        <v-chip
-                            v-for="subject in child.subjects"
-                            :key="subject.id"
-                            :color="subject.color"
-                            variant="flat"
-                            size="large"
-                            class="pack-chip"
-                            :class="{ 'pack-chip--done': subject.confirmed }"
-                            @click="toggle(child, subject)"
-                        >
-                            <v-icon v-if="subject.confirmed" icon="mdi-check-bold" start size="18" />
-                            <span :class="{ 'text-decoration-line-through': subject.confirmed }">{{ subject.name }}</span>
-                        </v-chip>
-                    </div>
-                </v-card-text>
-            </v-card>
+            <DailyPackList :children="children" when="today" />
+
+            <v-expansion-panels class="mt-6" variant="accordion">
+                <v-expansion-panel>
+                    <v-expansion-panel-title>
+                        <span class="tomorrow-title">
+                            <v-icon icon="mdi-backpack" class="mr-2" />
+                            Prepara lo zaino di domani ({{ tomorrow.dayLabel }})
+                        </span>
+                    </v-expansion-panel-title>
+                    <v-expansion-panel-text>
+                        <p class="instruction mb-4">
+                            <v-icon icon="mdi-gesture-tap" size="22" class="mr-1" />
+                            Tocca ogni colore quando lo metti nello zaino
+                        </p>
+                        <DailyPackList :children="tomorrow.children" when="tomorrow" />
+                    </v-expansion-panel-text>
+                </v-expansion-panel>
+            </v-expansion-panels>
         </template>
     </v-container>
 </template>
 
 <style scoped>
-.pack-chip {
-    cursor: pointer;
-}
-.pack-chip--done {
-    opacity: 0.55;
-}
 .instruction {
     display: flex;
     align-items: center;
     font-size: 1.15rem;
     font-weight: 600;
     color: rgb(var(--v-theme-primary));
+}
+.tomorrow-title {
+    display: flex;
+    align-items: center;
+    font-size: 1.05rem;
+    font-weight: 600;
 }
 </style>

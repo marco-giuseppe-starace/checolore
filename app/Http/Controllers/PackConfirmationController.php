@@ -15,12 +15,17 @@ class PackConfirmationController extends Controller
         abort_if($child->user_id !== $request->user()->id, 404);
         abort_if($subject->child_id !== $child->id, 404);
 
-        $today = Carbon::now()->toDateString();
+        // Only "today" or "tomorrow" are ever valid — kids often pack the
+        // night before, and confirming against tomorrow's real date means
+        // it's already marked done once tomorrow actually arrives. No
+        // arbitrary client-supplied date is trusted.
+        $when = $request->validate(['when' => ['sometimes', 'in:today,tomorrow']])['when'] ?? 'today';
+        $date = $when === 'tomorrow' ? Carbon::now()->addDay()->toDateString() : Carbon::now()->toDateString();
 
         $existing = PackConfirmation::where([
             'child_id' => $child->id,
             'subject_id' => $subject->id,
-            'date' => $today,
+            'date' => $date,
         ])->first();
 
         if ($existing) {
@@ -32,7 +37,7 @@ class PackConfirmationController extends Controller
         PackConfirmation::create([
             'child_id' => $child->id,
             'subject_id' => $subject->id,
-            'date' => $today,
+            'date' => $date,
         ]);
 
         return ['confirmed' => true];
