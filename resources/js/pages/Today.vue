@@ -71,13 +71,14 @@ onMounted(load);
                             v-for="subject in child.subjects"
                             :key="subject.id"
                             :color="subject.color"
-                            :variant="subject.confirmed ? 'outlined' : 'flat'"
+                            variant="flat"
                             size="large"
                             class="pack-chip"
+                            :class="{ 'pack-chip--done': subject.confirmed }"
                             @click="toggle(child, subject)"
                         >
                             <v-icon v-if="subject.confirmed" icon="mdi-check-bold" start size="18" />
-                            {{ subject.name }}
+                            <span :class="{ 'text-decoration-line-through': subject.confirmed }">{{ subject.name }}</span>
                         </v-chip>
                     </div>
                 </v-card-text>
@@ -89,6 +90,9 @@ onMounted(load);
 <style scoped>
 .pack-chip {
     cursor: pointer;
+}
+.pack-chip--done {
+    opacity: 0.55;
 }
 .instruction {
     display: flex;
