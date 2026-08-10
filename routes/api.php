@@ -5,6 +5,7 @@ use App\Http\Controllers\PackConfirmationController;
 use App\Http\Controllers\SubjectController;
 use App\Http\Controllers\TimetableEntryController;
 use App\Http\Controllers\TodayController;
+use App\Http\Controllers\WeekController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -14,6 +15,7 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     Route::get('/today', [TodayController::class, 'index']);
+    Route::get('/week', [WeekController::class, 'index']);
     Route::post('children/{child}/pack/{subject}', [PackConfirmationController::class, 'toggle']);
 
     Route::apiResource('children', ChildController::class);

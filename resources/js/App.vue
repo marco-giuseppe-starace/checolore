@@ -16,6 +16,7 @@ async function logout() {
                 <router-link to="/" class="brand-link">CheColore</router-link>
             </v-app-bar-title>
             <v-btn variant="text" :to="{ name: 'today' }">Oggi</v-btn>
+            <v-btn variant="text" :to="{ name: 'week' }">Settimana</v-btn>
             <v-btn variant="text" :to="{ name: 'children' }">Figli</v-btn>
             <v-btn variant="text" @click="logout">Esci</v-btn>
         </v-app-bar>
