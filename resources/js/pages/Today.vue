@@ -41,7 +41,11 @@ onMounted(load);
 <template>
     <v-container class="py-8" style="max-width: 720px">
         <p class="text-overline mb-1">{{ dayLabel }}</p>
-        <h1 class="text-h4 mb-6">Zaino di oggi</h1>
+        <h1 class="text-h4 mb-2">Zaino di oggi</h1>
+        <p v-if="!loading && children.some((c) => c.subjects.length)" class="instruction mb-6">
+            <v-icon icon="mdi-gesture-tap" size="22" class="mr-1" />
+            Tocca ogni colore quando lo metti nello zaino
+        </p>
 
         <v-progress-linear v-if="loading" indeterminate class="mb-4" />
 
@@ -85,5 +89,12 @@ onMounted(load);
 <style scoped>
 .pack-chip {
     cursor: pointer;
+}
+.instruction {
+    display: flex;
+    align-items: center;
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: rgb(var(--v-theme-primary));
 }
 </style>
