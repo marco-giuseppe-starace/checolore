@@ -18,6 +18,23 @@ async function load() {
     loading.value = false;
 }
 
+function packedCount(child) {
+    return child.subjects.filter((s) => s.confirmed).length;
+}
+
+async function toggle(child, subject) {
+    // Flip immediately — waiting for the round-trip before showing the
+    // check makes the tap feel unresponsive, which defeats the point of
+    // an instant-feedback ritual.
+    subject.confirmed = !subject.confirmed;
+    try {
+        const { data } = await window.axios.post(`/api/children/${child.id}/pack/${subject.id}`);
+        subject.confirmed = data.confirmed;
+    } catch (e) {
+        subject.confirmed = !subject.confirmed;
+    }
+}
+
 onMounted(load);
 </script>
 
@@ -35,19 +52,27 @@ onMounted(load);
 
         <template v-else>
             <v-card v-for="child in children" :key="child.id" variant="outlined" class="mb-4">
-                <v-card-title>{{ child.name }}</v-card-title>
+                <v-card-title class="d-flex align-center justify-space-between">
+                    {{ child.name }}
+                    <span v-if="child.subjects.length" class="text-caption text-medium-emphasis">
+                        {{ packedCount(child) }} di {{ child.subjects.length }} pronti
+                    </span>
+                </v-card-title>
                 <v-card-text>
                     <p v-if="!child.subjects.length" class="text-medium-emphasis">
                         Nessuna materia oggi — niente da preparare, o l'orario non è ancora impostato.
                     </p>
                     <div v-else class="d-flex flex-wrap ga-2">
                         <v-chip
-                            v-for="(subject, i) in child.subjects"
-                            :key="i"
+                            v-for="subject in child.subjects"
+                            :key="subject.id"
                             :color="subject.color"
-                            variant="flat"
+                            :variant="subject.confirmed ? 'outlined' : 'flat'"
                             size="large"
+                            class="pack-chip"
+                            @click="toggle(child, subject)"
                         >
+                            <v-icon v-if="subject.confirmed" icon="mdi-check-bold" start size="18" />
                             {{ subject.name }}
                         </v-chip>
                     </div>
@@ -56,3 +81,9 @@ onMounted(load);
         </template>
     </v-container>
 </template>
+
+<style scoped>
+.pack-chip {
+    cursor: pointer;
+}
+</style>

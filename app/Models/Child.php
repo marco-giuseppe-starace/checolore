@@ -40,4 +40,9 @@ class Child extends Model
     {
         return $this->hasMany(TimetableEntry::class);
     }
+
+    public function packConfirmations(): HasMany
+    {
+        return $this->hasMany(PackConfirmation::class);
+    }
 }

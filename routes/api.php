@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ChildController;
+use App\Http\Controllers\PackConfirmationController;
 use App\Http\Controllers\SubjectController;
 use App\Http\Controllers\TimetableEntryController;
 use App\Http\Controllers\TodayController;
@@ -13,6 +14,7 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     Route::get('/today', [TodayController::class, 'index']);
+    Route::post('children/{child}/pack/{subject}', [PackConfirmationController::class, 'toggle']);
 
     Route::apiResource('children', ChildController::class);
 
