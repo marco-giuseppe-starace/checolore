@@ -364,6 +364,15 @@
     font-weight: 600;
   }
 
+  .chip.done {
+    opacity: 0.6;
+  }
+
+  .chip.done .check {
+    color: var(--verde);
+    font-weight: 700;
+  }
+
   /* ---------- sections ---------- */
 
   section {
@@ -428,7 +437,7 @@
 
   .steps {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 1.5rem;
     counter-reset: step;
   }
@@ -623,8 +632,8 @@
         <div class="backpack-card">
           <p class="backpack-title">🎒 Zaino di oggi — Giulia</p>
           <div class="chip-row">
-            <span class="chip"><span class="swatch rosso"></span>Rosso</span>
-            <span class="chip"><span class="swatch blu"></span>Blu</span>
+            <span class="chip done"><span class="check">✓</span>Rosso</span>
+            <span class="chip done"><span class="check">✓</span>Blu</span>
             <span class="chip"><span class="swatch arancio"></span>Arancio</span>
             <span class="chip"><span class="swatch verde"></span>Verde</span>
             <span class="chip"><span class="swatch bianco"></span>Bianco</span>
@@ -673,6 +682,10 @@
           <h3>Ricevi i colori del giorno</h3>
           <p>Ogni mattina, o la sera prima, CheColore ti mostra quali colori preparare — per ogni figlio, separatamente.</p>
         </div>
+        <div class="step">
+          <h3>Confermi mano a mano</h3>
+          <p>Ogni colore si tocca quando il quaderno è nello zaino — un piccolo rito che aiuta a portare a termine la preparazione, non solo a ricordarla.</p>
+        </div>
       </div>
     </section>
 
@@ -681,7 +694,7 @@
         <div>
           <p class="label" style="color:var(--ink-faint)">Perché funziona</p>
           <h2 class="display" style="font-size:clamp(1.55rem, 2.6vw, 2.05rem); margin: 0.5rem 0 0.9rem;">Il colore si riconosce prima di essere letto.</h2>
-          <p>Abbinare colori a materie e classificatori è una strategia di organizzazione usata da tempo per bambini con ADHD o altre neurodivergenze, ed è utile in generale a chiunque debba orientarsi in fretta senza fermarsi a leggere. CheColore prende questa idea, già usata da tante famiglie con carta e pennarelli, e la rende facile da tenere aggiornata per più figli insieme.</p>
+          <p>Abbinare colori a materie e classificatori è una strategia di organizzazione usata da tempo per bambini con ADHD o altre neurodivergenze, ed è utile in generale a chiunque debba orientarsi in fretta senza fermarsi a leggere. Ma sapere cosa serve è solo metà del problema — la parte difficile è spesso iniziare e portare a termine la preparazione. Per questo ogni colore si tocca per confermarlo: un piccolo segnale di "fatto" che aiuta a chiudere l'azione, non solo a ricordarla.</p>
           <p class="disclaimer">CheColore è uno strumento di organizzazione, non un dispositivo medico e non sostituisce indicazioni professionali per l'ADHD o altre neurodivergenze.</p>
         </div>
         <div class="stat-card">
