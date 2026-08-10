@@ -14,21 +14,20 @@ class WeekController extends Controller
             },
         ])->get();
 
-        return $children->map(function ($child) {
-            $byDay = $child->timetableEntries
-                ->groupBy('day_of_week')
-                ->map(fn ($entries) => $entries->pluck('subject')->unique('id')->values()->map(fn ($s) => [
-                    'id' => $s->id,
-                    'name' => $s->name,
-                    'color' => $s->color,
-                ]));
-
-            return [
-                'id' => $child->id,
-                'name' => $child->name,
-                'include_saturday' => $child->include_saturday,
-                'days' => $byDay,
-            ];
-        });
+        return $children->map(fn ($child) => [
+            'id' => $child->id,
+            'name' => $child->name,
+            'include_saturday' => $child->include_saturday,
+            'periods_count' => $child->periods_count,
+            'entries' => $child->timetableEntries->map(fn ($entry) => [
+                'day_of_week' => $entry->day_of_week,
+                'period' => $entry->period,
+                'subject' => [
+                    'id' => $entry->subject->id,
+                    'name' => $entry->subject->name,
+                    'color' => $entry->subject->color,
+                ],
+            ]),
+        ]);
     }
 }
